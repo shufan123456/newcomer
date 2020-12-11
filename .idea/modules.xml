@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/sf-newcomer-task-common/sf-newcomer-task-common.iml" filepath="$PROJECT_DIR$/sf-newcomer-task-common/sf-newcomer-task-common.iml" />
+      <module fileurl="file://$PROJECT_DIR$/sf-newcomer-task-dao/sf-newcomer-task-dao.iml" filepath="$PROJECT_DIR$/sf-newcomer-task-dao/sf-newcomer-task-dao.iml" />
+      <module fileurl="file://$PROJECT_DIR$/sf-newcomer-task-facade/sf-newcomer-task-facade.iml" filepath="$PROJECT_DIR$/sf-newcomer-task-facade/sf-newcomer-task-facade.iml" />
+      <module fileurl="file://$PROJECT_DIR$/sf-newcomer-task-server.iml" filepath="$PROJECT_DIR$/sf-newcomer-task-server.iml" />
+      <module fileurl="file://$PROJECT_DIR$/sf-newcomer-task-service/sf-newcomer-task-service.iml" filepath="$PROJECT_DIR$/sf-newcomer-task-service/sf-newcomer-task-service.iml" />
+    </modules>
+  </component>
+</project>

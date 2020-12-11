@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>sf-newcomer-task-dao</artifactId>
+    <packaging>jar</packaging>
+
+    <name>sf-newcomer-task-dao</name>
+    <description>sf-newcomer-task-dao</description>
+
+    <parent>
+        <groupId>com.tuhu</groupId>
+        <artifactId>sf-newcomer-task-server</artifactId>
+        <version>1.0.0-RELEASE</version>
+    </parent>
+
+    <dependencies>
+       
+        <dependency>
+            <groupId>com.tuhu</groupId>
+            <artifactId>tuhu-spring-cloud-rw-datasource-frame</artifactId>
+        </dependency>
+        
+<!--         <dependency> -->
+<!-- 		     <groupId>com.tuhu</groupId> -->
+<!-- 		     <artifactId>tuhu-spring-cloud-sharding-datasource-frame</artifactId> -->
+<!-- 		</dependency> -->
+
+        <dependency>
+            <groupId>org.apache.velocity</groupId>
+            <artifactId>velocity</artifactId>
+        </dependency>
+        <!--每个工程都有Pojo，都需要用到该包对应的注解-->
+        <dependency>
+            <groupId>javax.persistence</groupId>
+            <artifactId>persistence-api</artifactId>
+            <version>1.0</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>tk.mybatis</groupId>
+            <artifactId>mapper-spring-boot-starter</artifactId>
+            <version>2.0.4</version>
+        </dependency>
+
+        <!--指定一下pagehelp版本，跟jsqlparser，
+       解决mybatis plus插件分页跟pagehelper分页的冲突
+       java.lang.NoSuchMethodError: net.sf.jsqlparser.statement.select.PlainSelect.getGroupByColumnReferences()
+       -->
+        <dependency>
+            <groupId>com.github.jsqlparser</groupId>
+            <artifactId>jsqlparser</artifactId>
+            <version>3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.pagehelper</groupId>
+            <artifactId>pagehelper</artifactId>
+            <version>5.1.11</version>
+        </dependency>
+
+    </dependencies>
+
+</project>

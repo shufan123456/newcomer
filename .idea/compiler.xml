@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="sf-newcomer-task-service" />
+        <module name="sf-newcomer-task-dao" />
+        <module name="sf-newcomer-task-facade" />
+        <module name="sf-newcomer-task-common" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="sf-newcomer-task-common" target="1.8" />
+      <module name="sf-newcomer-task-dao" target="1.8" />
+      <module name="sf-newcomer-task-facade" target="1.8" />
+      <module name="sf-newcomer-task-server" target="1.8" />
+      <module name="sf-newcomer-task-service" target="1.8" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="sf-newcomer-task-common" options="-parameters" />
+      <module name="sf-newcomer-task-dao" options="-parameters" />
+      <module name="sf-newcomer-task-facade" options="-parameters" />
+      <module name="sf-newcomer-task-service" options="-parameters" />
+    </option>
+  </component>
+</project>

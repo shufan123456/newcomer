@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: com.tuhu.soter:tuhu-spring-boot-starter-soter:2.0.2.1-RELEASE">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../java/maven_repository/com/tuhu/soter/tuhu-spring-boot-starter-soter/2.0.2.1-RELEASE/tuhu-spring-boot-starter-soter-2.0.2.1-RELEASE.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$PROJECT_DIR$/../../java/maven_repository/com/tuhu/soter/tuhu-spring-boot-starter-soter/2.0.2.1-RELEASE/tuhu-spring-boot-starter-soter-2.0.2.1-RELEASE-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/../../java/maven_repository/com/tuhu/soter/tuhu-spring-boot-starter-soter/2.0.2.1-RELEASE/tuhu-spring-boot-starter-soter-2.0.2.1-RELEASE-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>sf-newcomer-task-service</artifactId>
+	<packaging>jar</packaging>
+
+	<name>sf-newcomer-task-service</name>
+	<description>sf-newcomer-task-service</description>
+
+	<parent>
+		<groupId>com.tuhu</groupId>
+		<artifactId>sf-newcomer-task-server</artifactId>
+		<version>1.0.0-RELEASE</version>
+	</parent>
+
+	<dependencies>
+	
+		<dependency>
+			<groupId>com.tuhu</groupId>
+			<artifactId>tuhu-spring-cloud-api-common</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.tuhu</groupId>
+			<artifactId>sf-newcomer-task-dao</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.tuhu</groupId>
+			<artifactId>sf-newcomer-task-facade</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.tuhu</groupId>
+			<artifactId>sf-newcomer-task-common</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.tuhu</groupId>
+			<artifactId>tuhu-boot-starter-logger</artifactId>
+		</dependency>
+		
+		<!--$$-->
+
+	</dependencies>
+
+	<profiles>
+		<profile>
+			<!-- 生产环境 -->
+			<id>prd</id>
+			<properties>
+				<profiles.active>prd</profiles.active>
+			</properties>
+		</profile>
+		<profile>
+			<!-- 本地开发环境 -->
+			<id>local</id>
+			<properties>
+				<profiles.active>local</profiles.active>
+			</properties>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+		</profile>
+		<profile>
+			<!-- 测试环境 -->
+			<id>test</id>
+			<properties>
+				<profiles.active>test</profiles.active>
+			</properties>
+		</profile>
+		<profile>
+			<!-- UT环境 -->
+			<id>ut</id>
+			<properties>
+				<profiles.active>ut</profiles.active>
+			</properties>
+		</profile>
+		<profile>
+			<!-- tuhutest环境 -->
+			<id>tuhutest</id>
+			<properties>
+				<profiles.active>tuhutest</profiles.active>
+			</properties>
+		</profile>
+	</profiles>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.1.0</version>
+				<configuration>
+					<encoding>UTF-8</encoding>
+					<useDefaultDelimiters>true</useDefaultDelimiters>
+				</configuration>
+			</plugin>
+			
+			<plugin>
+			    <groupId>com.tuhu.forseti</groupId>
+			    <artifactId>forseti-maven-plugin</artifactId>
+			    <version>1.2.0</version>
+			    <configuration>
+			        <apiSources>
+			            <apiSource>
+			                <!-- 包扫描路径 -->
+			                <locations>com.tuhu.sf.newcomer.task</locations>
+			                <!-- 请求协议（http，https） -->
+			                <schemes>http</schemes>
+			                <!-- 请求根路径（根据自身项目路径自行修改） -->
+			                <basePath>/</basePath>
+			                <!-- Forseti 同步地址 -->
+			                <server>https://shop-gateway-inner.tuhu.work/int-spring-arch-forseti-server/apis/v2/upload</server>
+			                <!-- Forseti 同步秘钥 -->
+			                <secretKey>0613a55cc62b16315ea43c539a1bbb0f</secretKey>
+			                <!-- 你的 AppID, 不能为空 -->
+			                <appId></appId>
+			                <!-- profile 环境变量，${profiles.active} 不要替换成具体数值 -->
+			                <profile>${profiles.active}</profile>
+			            </apiSource>
+			        </apiSources>
+			     </configuration>
+			     <executions>
+			        <execution>
+			            <phase>compile</phase>
+			            <goals>
+			                <goal>generate</goal>
+			            </goals>
+			        </execution>
+			    </executions>
+			</plugin>
+			
+		</plugins>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+		<finalName>sf-newcomer-task-service</finalName>
+	</build>
+
+</project>

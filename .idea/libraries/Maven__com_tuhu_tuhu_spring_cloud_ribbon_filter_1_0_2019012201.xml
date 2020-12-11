@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: com.tuhu:tuhu-spring-cloud-ribbon-filter:1.0.2019012201">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../java/maven_repository/com/tuhu/tuhu-spring-cloud-ribbon-filter/1.0.2019012201/tuhu-spring-cloud-ribbon-filter-1.0.2019012201.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$PROJECT_DIR$/../../java/maven_repository/com/tuhu/tuhu-spring-cloud-ribbon-filter/1.0.2019012201/tuhu-spring-cloud-ribbon-filter-1.0.2019012201-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/../../java/maven_repository/com/tuhu/tuhu-spring-cloud-ribbon-filter/1.0.2019012201/tuhu-spring-cloud-ribbon-filter-1.0.2019012201-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

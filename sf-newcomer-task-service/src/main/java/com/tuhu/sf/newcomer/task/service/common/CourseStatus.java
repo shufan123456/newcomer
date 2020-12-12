@@ -30,12 +30,10 @@
   THREE(3,"已满员");
 
 
-  private int code;
-  private String value;
+  private final int code;
 
-  CourseStatus(int code, String value) {
+  CourseStatus(int code,final String value) {
    this.code = code;
-   this.value = value;
   }
 
   public int getCode() {

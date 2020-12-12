@@ -75,7 +75,7 @@
    * @Descript 报名名单审核
    * @return 返回审核结果
    */
-  Result AgreeEnrollCheck(TaskRequestFacade taskRequestFacade);
+  Result agreeEnrollCheck(TaskRequestFacade taskRequestFacade);
 
   /**
    * 拒绝报名名单审核
@@ -85,10 +85,6 @@
    * @Descript 报名名单审核
    * @return 返回审核结果
    */
-  Result RejectEnrollCheck(TaskRequestFacade taskRequestFacade);
+  Result rejectEnrollCheck(TaskRequestFacade taskRequestFacade);
 
-  /**
-   * job对报名名单自动进行审核
-   */
-  void AutoEnrollCheck();
  }

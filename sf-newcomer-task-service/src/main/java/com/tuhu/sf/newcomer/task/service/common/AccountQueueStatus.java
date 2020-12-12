@@ -17,89 +17,116 @@
   */
  public class AccountQueueStatus implements Serializable {
 
-  private static final long serialVersionUID = 0000000000006L;
+     private static final long serialVersionUID = 0000000000006L;
 
-  //用户id
-  private Long accountId;
-  //课程名称
-  private String name;
-  //讲师名称
-  private String teacher;
-  //开课时间
-  private Date beginTime;
-  //报名时间
-  private Date createTime;
-  //审核状态 0:审核中，1:已审核,2:审核失败,
-  private Integer status;
-  //报名失败->席位回滚
-  private Long courseId;
+     /**
+      * 用户id
+      */
 
-  public AccountQueueStatus() {
-  }
+     private Long accountId;
+     /**
+      * 报名id
+      */
+     private Long enrollId;
+     /**
+      * 课程名称
+      */
+     private String name;
+     /**
+      * 讲师名称
+      */
+     private String teacher;
+     /**
+      * 开课时间
+      */
+     private Date beginTime;
+     /**
+      * 报名时间
+      */
+     private Date createTime;
+     /**
+      * 审核状态 0:审核中，1:已审核,2:审核失败,
+      */
+     private Integer status;
+     /**
+      * 报名失败->席位回滚
+      */
+     private Long courseId;
 
-  public AccountQueueStatus(Long accountId, String name, String teacher, Date beginTime, Date createTime, Integer status, Long courseId) {
-   this.accountId = accountId;
-   this.name = name;
-   this.teacher = teacher;
-   this.beginTime = beginTime;
-   this.createTime = createTime;
-   this.status = status;
-   this.courseId = courseId;
-  }
+     public AccountQueueStatus() {
+     }
 
-  public Long getAccountId() {
-   return accountId;
-  }
+     public AccountQueueStatus(Long accountId, String name, String teacher, Date beginTime, Date createTime, Integer status, Long courseId) {
+         this.accountId = accountId;
+         this.name = name;
+         this.teacher = teacher;
+         this.beginTime = beginTime;
+         this.createTime = createTime;
+         this.status = status;
+         this.courseId = courseId;
+     }
 
-  public void setAccountId(Long accountId) {
-   this.accountId = accountId;
-  }
+     public Long getEnrollId() {
+         return enrollId;
+     }
 
-  public String getName() {
-   return name;
-  }
+     public void setEnrollId(Long enrollId) {
+         this.enrollId = enrollId;
+     }
 
-  public void setName(String name) {
-   this.name = name;
-  }
+     public Long getAccountId() {
+         return accountId;
+     }
 
-  public String getTeacher() {
-   return teacher;
-  }
+     public void setAccountId(Long accountId) {
+         this.accountId = accountId;
+     }
 
-  public void setTeacher(String teacher) {
-   this.teacher = teacher;
-  }
+     public String getName() {
+         return name;
+     }
 
-  public Date getBeginTime() {
-   return beginTime;
-  }
+     public void setName(String name) {
+         this.name = name;
+     }
 
-  public void setBeginTime(Date beginTime) {
-   this.beginTime = beginTime;
-  }
+     public String getTeacher() {
+         return teacher;
+     }
 
-  public Date getCreateTime() {
-   return createTime;
-  }
+     public void setTeacher(String teacher) {
+         this.teacher = teacher;
+     }
 
-  public void setCreateTime(Date createTime) {
-   this.createTime = createTime;
-  }
+     public Date getBeginTime() {
+         return beginTime;
+     }
 
-  public Integer getStatus() {
-   return status;
-  }
+     public void setBeginTime(Date beginTime) {
+         this.beginTime = beginTime;
+     }
 
-  public void setStatus(Integer status) {
-   this.status = status;
-  }
+     public Date getCreateTime() {
+         return createTime;
+     }
 
-  public Long getCourseId() {
-   return courseId;
-  }
+     public void setCreateTime(Date createTime) {
+         this.createTime = createTime;
+     }
 
-  public void setCourseId(Long courseId) {
-   this.courseId = courseId;
-  }
+     public Integer getStatus() {
+         return status;
+     }
+
+     public void setStatus(Integer status) {
+         this.status = status;
+     }
+
+     public Long getCourseId() {
+         return courseId;
+     }
+
+     public void setCourseId(Long courseId) {
+         this.courseId = courseId;
+     }
  }

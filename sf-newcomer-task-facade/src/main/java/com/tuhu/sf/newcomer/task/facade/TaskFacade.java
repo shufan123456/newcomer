@@ -68,12 +68,6 @@
   Result RejectEnrollCheck(@RequestBody(required = false) TaskRequestFacade taskRequestFacade);
 
   /**
-   * job对报名名单自动进行审核
-   */
-  @GetMapping("/enroll/autoCheck")
-  void AutoEnrollCheck();
-
-  /**
    * 用户查看位课程(未报名的)
    * @Descript
    * @param taskRequestFacade accountId 用户id

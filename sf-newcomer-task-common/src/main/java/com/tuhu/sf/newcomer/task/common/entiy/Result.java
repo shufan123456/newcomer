@@ -4,14 +4,25 @@ import java.io.Serializable;
 
 /**
  * 描述
- *
  */
 public class Result<T> implements Serializable {
     private static final long serialVersionUID = 0000000000004L;
-    private boolean flag;//是否成功
-    private Integer code;//返回码
-    private String message;//返回消息
-    private T data;//返回数据
+    /**
+     * 是否成功
+     */
+    private boolean flag;
+    /**
+     * 返回码
+     */
+    private Integer code;
+    /**
+     * 返回消息
+     */
+    private String message;
+    /**
+     * 返回数据
+     */
+    private T data;
 
     public Result(boolean flag, Integer code, String message, Object data) {
         this.flag = flag;

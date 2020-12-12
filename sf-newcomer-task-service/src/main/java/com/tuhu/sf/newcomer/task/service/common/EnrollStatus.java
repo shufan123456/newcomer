@@ -23,14 +23,12 @@
   /**
    * 2：审核失败
    */
-  TWO(2,"审核失败");
+  TWO(2, "审核失败");
 
-  private int code;
-  private String value;
+  private final int code;
 
-  EnrollStatus(int code, String value) {
+  EnrollStatus(int code, final String value){
    this.code = code;
-   this.value = value;
   }
 
   public int getCode() {

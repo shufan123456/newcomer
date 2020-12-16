@@ -62,6 +62,25 @@ public class Enroll implements Serializable {
 
 
     @Override
+    public String toString() {
+        return "Enroll{" +
+                "id=" + id +
+                ", courseId=" + courseId +
+                ", userId=" + userId +
+                ", auditor=" + auditor +
+                ", auditStatus='" + auditStatus + '\'' +
+                ", auditTime=" + auditTime +
+                ", enrollTime=" + enrollTime +
+                ", creator=" + creator +
+                ", creatorName='" + creatorName + '\'' +
+                ", addTime=" + addTime +
+                ", updator=" + updator +
+                ", updatorName='" + updatorName + '\'' +
+                ", updateTime=" + updateTime +
+                '}';
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

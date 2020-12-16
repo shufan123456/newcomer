@@ -3,7 +3,6 @@ import com.tuhu.base.mapper.BaseReadMapper;
 import com.tuhu.sf.newcomer.task.dao.dataobject.Course;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
-import org.springframework.stereotype.Component;
 
 
 /****

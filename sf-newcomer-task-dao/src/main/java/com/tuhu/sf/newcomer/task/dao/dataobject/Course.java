@@ -65,6 +65,27 @@ public class Course implements Serializable {
 
 
     @Override
+    public String toString() {
+        return "Course{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", teacher='" + teacher + '\'' +
+                ", content='" + content + '\'' +
+                ", courseStatus='" + courseStatus + '\'' +
+                ", beginTime=" + beginTime +
+                ", endTime=" + endTime +
+                ", creator=" + creator +
+                ", creatorName='" + creatorName + '\'' +
+                ", addTime=" + addTime +
+                ", updator=" + updator +
+                ", updatorName='" + updatorName + '\'' +
+                ", updateTime=" + updateTime +
+                ", num=" + num +
+                ", version=" + version +
+                '}';
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

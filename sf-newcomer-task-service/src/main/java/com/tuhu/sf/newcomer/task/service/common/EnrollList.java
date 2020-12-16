@@ -91,6 +91,26 @@
      public EnrollList() {
      }
 
+     @Override
+     public String toString() {
+         return "EnrollList{" +
+                 "name='" + name + '\'' +
+                 ", idCardNum='" + idCardNum + '\'' +
+                 ", nationality='" + nationality + '\'' +
+                 ", age=" + age +
+                 ", phone='" + phone + '\'' +
+                 ", status='" + status + '\'' +
+                 ", accountId=" + accountId +
+                 ", courseName='" + courseName + '\'' +
+                 ", teacher='" + teacher + '\'' +
+                 ", beginTime=" + beginTime +
+                 ", enrollTime=" + enrollTime +
+                 ", courseId=" + courseId +
+                 ", auditStatus='" + auditStatus + '\'' +
+                 ", auditor=" + auditor +
+                 '}';
+     }
+
      public static long getSerialVersionUID() {
          return serialVersionUID;
      }

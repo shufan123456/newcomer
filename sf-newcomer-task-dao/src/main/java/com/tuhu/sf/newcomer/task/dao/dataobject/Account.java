@@ -85,6 +85,34 @@ public class Account implements Serializable {
     private Date updateTime;//修改时间
 
 
+    @Override
+    public String toString() {
+        return "Account{" +
+                "id=" + id +
+                ", loginId='" + loginId + '\'' +
+                ", organizationCode='" + organizationCode + '\'' +
+                ", phone='" + phone + '\'' +
+                ", roleCode='" + roleCode + '\'' +
+                ", password='" + password + '\'' +
+                ", name='" + name + '\'' +
+                ", nationality='" + nationality + '\'' +
+                ", idCardNum='" + idCardNum + '\'' +
+                ", age=" + age +
+                ", simplePinyinName='" + simplePinyinName + '\'' +
+                ", type='" + type + '\'' +
+                ", status='" + status + '\'' +
+                ", email='" + email + '\'' +
+                ", gender='" + gender + '\'' +
+                ", birthday=" + birthday +
+                ", creator=" + creator +
+                ", creatorName='" + creatorName + '\'' +
+                ", addTime=" + addTime +
+                ", updator=" + updator +
+                ", updatorName='" + updatorName + '\'' +
+                ", updateTime=" + updateTime +
+                '}';
+    }
+
     public Long getId() {
         return id;
     }

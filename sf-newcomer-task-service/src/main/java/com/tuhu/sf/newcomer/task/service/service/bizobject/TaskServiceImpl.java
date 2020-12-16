@@ -66,11 +66,6 @@
 
      @Resource
      private EnrollReadMapper enrollReadMapper;
-     /**
-      * redis
-      */
-     @Resource
-     private RedisTemplate redisTemplate;
 
      @Resource
      private IdWorker idWorker;
@@ -97,10 +92,15 @@
          course.setId(idWorker.nextId());
          course.setAddTime(new Date());
          //写入mysql
-         if (courseWriteMapper.insert(course) > 0) {
-             return new Result(true, StatusCode.OK, "课程添加成功");
+         try {
+             if (courseWriteMapper.insert(course) > 0) {
+                 return new Result(true, StatusCode.OK, "课程添加成功");
+             }
+         } catch (Exception e) {
+             log.error("add..{}", course);
          }
          return new Result(true, StatusCode.ERROR, "课程添加失败");
+
      }
 
      /**
@@ -122,6 +122,7 @@
              return new Result(false, StatusCode.ERROR, "开课时间不能小于当前时间");
          }
          course.setUpdateTime(new Date());
+
          if (courseWriteMapper.updateById(course) > 0) {
              return new Result(true, StatusCode.OK, "修改课程信息成功");
          }
@@ -139,6 +140,7 @@
          EntityWrapper<Course> entityWrapper = new EntityWrapper<>();
          entityWrapper.eq("name", course.getName());
          entityWrapper.eq("begin_time", course.getBeginTime());
+
          if (courseReadMapper.selectCount(entityWrapper) > 0) {
              return false;
          }
@@ -165,6 +167,7 @@
          }
          //判断是否是一个有效的用户
          Account account = accountReadMapper.selectById(taskRequestFacade.getAccountId());
+
          if (account == null) {
              return new Result(false, StatusCode.ERROR, "无效的用户id");
          }
@@ -179,7 +182,7 @@
          //2、不为空，状态不是0
          //3、席位<= 0
          //4、 开课时间小于当前时间
-         if (StringUtils.isEmpty(course)
+         if ( StringUtils.isEmpty(course)
                  || (!StringUtils.isEmpty(course) && !course.getCourseStatus().equals(String.valueOf(CourseStatus.ZERO.getCode())))
                  || (!StringUtils.isEmpty(course) && course.getNum() <= 0)
                  || (!StringUtils.isEmpty(course) && course.getBeginTime().compareTo(new Date()) < 0)) {
@@ -215,7 +218,10 @@
          Integer courseVersion = courseReadMapper.selectVersionByCourseId(taskRequestFacade.getCourseId());
          //修改课程席位
          Integer courseResult = courseWriteMapper.decrCount(taskRequestFacade.getCourseId(), 1, courseVersion);
-         return new Result(true, StatusCode.OK, "报名成功");
+         if (enroolResult > 0 && courseResult > 0) {
+             return new Result(true, StatusCode.OK, "报名成功");
+         }
+         return new Result(false, StatusCode.ERROR, "报名失败");
      }
 
      /**
@@ -233,12 +239,13 @@
          //用户已经报名的课程
          List<Long> accountCoures = enrollReadMapper.selectCoursesByAccount(taskRequestFacade.getAccountId());
          EntityWrapper<Course> entityWrapper = new EntityWrapper<>();
-         if (accountCoures == null || accountCoures.size() <= 0) {
-             //过滤掉已经报过名的，并且：是待开课状态的，席位大于0的，开课时间是大于当前时间的
-             entityWrapper.eq("course_status", CourseStatus.ZERO.getCode());
-             entityWrapper.gt("num", 0);
-             entityWrapper.gt("begin_time", new Date());
-         } else {
+
+         //是待开课状态的，席位大于0的，开课时间是大于当前时间的
+         entityWrapper.eq("course_status", CourseStatus.ZERO.getCode());
+         entityWrapper.gt("num", 0);
+         entityWrapper.gt("begin_time", new Date());
+         if (accountCoures != null || accountCoures.size() >= 0) {
+             //过滤掉已经报过名的
              entityWrapper.notIn("id", accountCoures);
          }
          List<Course> courseList = courseReadMapper.selectList(entityWrapper);
@@ -468,12 +475,12 @@
          enrollEntityWrapper.eq("audit_status", EnrollStatus.ZERO.getCode());
          List<Enroll> enrolls = enrollReadMapper.selectList(enrollEntityWrapper);
          if (null == enrolls || enrolls.size() <= 0) {
-             log.debug("nullData..{}",enrolls);
+             log.debug("nullData..{}", enrolls);
          }
          for (Enroll enl : enrolls) {
              Account account = accountReadMapper.selectById(enl.getUserId());
              //属性合法
-             try{
+             try {
                  if (checkAccoutParam(account)) {
                      //调用同意审核方法
                      agreeEnrollCheck(new TaskRequestFacade(enl.getUserId(), enl.getCourseId(), enl.getId(), 8888L));
@@ -481,8 +488,8 @@
                      //调用拒绝审核方法
                      rejectEnrollCheck(new TaskRequestFacade(enl.getUserId(), enl.getCourseId(), enl.getId(), 8888L));
                  }
-             }catch (Exception e){
-                 log.debug("EnrollPushTask..Exception..{}",account);
+             } catch (Exception e) {
+                 log.debug("EnrollPushTask..Exception..{}", account);
              }
 
          }

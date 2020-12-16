@@ -56,6 +56,20 @@
      public AccountQueueStatus() {
      }
 
+     @Override
+     public String toString() {
+         return "AccountQueueStatus{" +
+                 "accountId=" + accountId +
+                 ", enrollId=" + enrollId +
+                 ", name='" + name + '\'' +
+                 ", teacher='" + teacher + '\'' +
+                 ", beginTime=" + beginTime +
+                 ", createTime=" + createTime +
+                 ", status=" + status +
+                 ", courseId=" + courseId +
+                 '}';
+     }
+
      public AccountQueueStatus(Long accountId, Long enrollId, String name, String teacher, Date beginTime, Date createTime, Integer status, Long courseId) {
          this.accountId = accountId;
          this.enrollId = enrollId;

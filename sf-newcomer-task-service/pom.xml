@@ -15,7 +15,12 @@
 	</parent>
 
 	<dependencies>
-	
+		<dependency>
+			<groupId>com.tuhu.krill</groupId>
+			<artifactId>krill-client-starter</artifactId>
+			<version>1.0.0-RELEASE</version>
+		</dependency>
+
 		<dependency>
 			<groupId>com.tuhu</groupId>
 			<artifactId>tuhu-spring-cloud-api-common</artifactId>

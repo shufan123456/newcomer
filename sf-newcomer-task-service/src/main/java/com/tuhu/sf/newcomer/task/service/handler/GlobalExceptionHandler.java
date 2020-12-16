@@ -9,6 +9,8 @@
 
  import com.tuhu.sf.newcomer.task.common.entiy.Result;
  import com.tuhu.sf.newcomer.task.common.entiy.StatusCode;
+ import lombok.Getter;
+ import lombok.Setter;
  import org.springframework.http.converter.HttpMessageNotReadableException;
  import org.springframework.web.bind.annotation.ControllerAdvice;
  import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -23,7 +25,7 @@
   @ExceptionHandler(Exception.class)
   public Result GlobalException(Exception ex){
    //ex.printStackTrace();
-   return new Result(false, StatusCode.ERROR,"出现异常了",ex.getMessage());
+   return new Result(false, StatusCode.ERROR,"出现异常了:" + ex.getMessage());
   }
 
 

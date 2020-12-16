@@ -56,8 +56,9 @@
      public AccountQueueStatus() {
      }
 
-     public AccountQueueStatus(Long accountId, String name, String teacher, Date beginTime, Date createTime, Integer status, Long courseId) {
+     public AccountQueueStatus(Long accountId, Long enrollId, String name, String teacher, Date beginTime, Date createTime, Integer status, Long courseId) {
          this.accountId = accountId;
+         this.enrollId = enrollId;
          this.name = name;
          this.teacher = teacher;
          this.beginTime = beginTime;

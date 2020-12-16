@@ -7,6 +7,8 @@
   */
  package com.tuhu.sf.newcomer.task.service.service.bizobject;
 
+ import com.baomidou.mybatisplus.mapper.EntityWrapper;
+
  import com.tuhu.sf.newcomer.task.common.entiy.IdCardNumUtil;
  import com.tuhu.sf.newcomer.task.common.entiy.IdWorker;
  import com.tuhu.sf.newcomer.task.common.entiy.Result;
@@ -14,46 +16,56 @@
  import com.tuhu.sf.newcomer.task.dao.dataobject.Account;
  import com.tuhu.sf.newcomer.task.dao.dataobject.Course;
  import com.tuhu.sf.newcomer.task.dao.dataobject.Enroll;
- import com.tuhu.sf.newcomer.task.dao.mapper.AccountMapper;
- import com.tuhu.sf.newcomer.task.dao.mapper.CourseMapper;
- import com.tuhu.sf.newcomer.task.dao.mapper.EnrollMapper;
+ import com.tuhu.sf.newcomer.task.dao.mapper.*;
  import com.tuhu.sf.newcomer.task.facade.request.TaskRequestFacade;
  import com.tuhu.sf.newcomer.task.service.common.*;
  import com.tuhu.sf.newcomer.task.service.service.TaskService;
- import com.tuhu.sf.newcomer.task.service.task.MultiThreadingCreatEnroll;
+
+
+ import lombok.extern.slf4j.Slf4j;
  import org.springframework.data.redis.core.RedisTemplate;
+
  import org.springframework.scheduling.annotation.Scheduled;
  import org.springframework.stereotype.Service;
+
  import org.springframework.transaction.annotation.Transactional;
  import org.springframework.util.StringUtils;
 
- import tk.mybatis.mapper.entity.Example;
-
  import javax.annotation.Resource;
  import java.util.*;
- import java.util.concurrent.locks.ReentrantLock;
+
 
  /**
   * @author 舒凡
   * @date 2020/12/8 13:45
   */
  @Service
+ @Slf4j(topic = "sf-newcomer-task-service")
+ @SuppressWarnings("unchecked")
  public class TaskServiceImpl implements TaskService {
      /**
       * 用户Mapper
       */
      @Resource
-     private AccountMapper accountMapper;
+     private AccountReadMapper accountReadMapper;
      /**
-      * 课程Mapper
+      * 课程Mapper(读)
       */
      @Resource
-     private CourseMapper courseMapper;
+     private CourseReadMapper courseReadMapper;
+     /**
+      * 课程Mapper(写)
+      */
+     @Resource
+     private CourseWriteMapper courseWriteMapper;
      /**
       * 报名Mapper
       */
      @Resource
-     private EnrollMapper enrollMapper;
+     private EnrollWriteMapper enrollWriteMapper;
+
+     @Resource
+     private EnrollReadMapper enrollReadMapper;
      /**
       * redis
       */
@@ -61,7 +73,8 @@
      private RedisTemplate redisTemplate;
 
      @Resource
-     private MultiThreadingCreatEnroll multiThreadingCreatEnroll;
+     private IdWorker idWorker;
+
 
      /**
       * 课程新建
@@ -72,54 +85,23 @@
       */
      @Override
      public Result add(Course course) {
-         ReentrantLock reentrantLock = new ReentrantLock();
          if (!checkCourseParam(course)) {
              return new Result(false, StatusCode.ERROR, "课程名称、讲师、开课时间、课程内容、课程状态不能为空");
          }
          if (course.getBeginTime().compareTo(new Date()) <= 0) {
              return new Result(false, StatusCode.ERROR, "开课时间不能小于当前时间");
          }
-         Example example = new Example(Course.class);
-         //判断课程与开课时间是否冲突
-         Example.Criteria criteria = example.createCriteria();
-         criteria.andEqualTo("name", course.getName());
-         criteria.andEqualTo("beginTime", course.getBeginTime());
-         if (courseMapper.selectCountByExample(example) > 0) {
-             return new Result(false, StatusCode.ERROR, "课程名称与开课时间冲突");
+         if (!checkCourseParamConflict(course)) {
+             return new Result(false, StatusCode.ERROR, "课程名字与开课时间已存在");
          }
-         IdWorker idWorker = new IdWorker(0L, 0L);
-         //先进行数据库写入
-         course.setId((Long) idWorker.nextId());
+         course.setId(idWorker.nextId());
          course.setAddTime(new Date());
-         reentrantLock.lock();
-         try {
-             //写入mysql
-             if (courseMapper.insertSelective(course) > 0) {
-                 //写入redis
-                 redisTemplate.boundHashOps(RedisKey.COURSE_KEY.getCode()).put(course.getId(), course);
-                 //写入课程席位数
-                 redisTemplate.boundListOps(RedisKey.COURSE_COUNT.getCode() + "_" + course.getId())
-                         .leftPushAll(putCourseIds(5, course.getId()));
-                 return new Result(true, StatusCode.OK, "课程添加成功");
-             }
-             return new Result(true, StatusCode.OK, "课程添加失败");
-         } finally {
-             reentrantLock.unlock();
+         //写入mysql
+         if (courseWriteMapper.insert(course) > 0) {
+             return new Result(true, StatusCode.OK, "课程添加成功");
          }
-
+         return new Result(true, StatusCode.ERROR, "课程添加失败");
      }
-
-     /**
-      * 对课程席位进行设值
-      */
-     public Long[] putCourseIds(Integer num, Long id) {
-         Long[] ids = new Long[num];
-         for (int i = 0; i < ids.length; i++) {
-             ids[i] = id;
-         }
-         return ids;
-     }
-
 
      /**
       * 课程修改
@@ -130,7 +112,6 @@
       */
      @Override
      public Result update(Course course) {
-         ReentrantLock reentrantLock = new ReentrantLock();
          if (!checkCourseParam(course)) {
              return new Result(false, StatusCode.ERROR, "课程名称、讲师、开课时间、课程内容、课程状态不能为空");
          }
@@ -140,18 +121,28 @@
          if (course.getBeginTime().compareTo(new Date()) <= 0) {
              return new Result(false, StatusCode.ERROR, "开课时间不能小于当前时间");
          }
-         reentrantLock.lock();
-         try {
-             course.setUpdateTime(new Date());
-             if (courseMapper.updateByPrimaryKeySelective(course) > 0) {
-                 redisTemplate.boundHashOps(RedisKey.COURSE_KEY.getCode()).delete(course.getId());
-                 redisTemplate.boundHashOps(RedisKey.COURSE_KEY.getCode()).put(course.getId(), course);
-                 return new Result(true, StatusCode.OK, "修改课程信息成功");
-             }
-         } finally {
-             reentrantLock.unlock();
+         course.setUpdateTime(new Date());
+         if (courseWriteMapper.updateById(course) > 0) {
+             return new Result(true, StatusCode.OK, "修改课程信息成功");
          }
-         return new Result(true, StatusCode.OK, "修改课程失败");
+         return new Result(false, StatusCode.ERROR, "修改课程失败");
+
+     }
+
+     /**
+      * 课程名字与开课时间是否冲突
+      *
+      * @param course
+      * @return
+      */
+     private Boolean checkCourseParamConflict(Course course) {
+         EntityWrapper<Course> entityWrapper = new EntityWrapper<>();
+         entityWrapper.eq("name", course.getName());
+         entityWrapper.eq("begin_time", course.getBeginTime());
+         if (courseReadMapper.selectCount(entityWrapper) > 0) {
+             return false;
+         }
+         return true;
      }
 
      /**
@@ -162,7 +153,9 @@
       * @return
       * @Descript
       */
+
      @Override
+     @Transactional(rollbackFor = Exception.class)
      public Result addEnroll(TaskRequestFacade taskRequestFacade) {
          if (StringUtils.isEmpty(taskRequestFacade.getAccountId())) {
              return new Result(false, StatusCode.ERROR, "用户id不能为空");
@@ -170,41 +163,59 @@
          if (StringUtils.isEmpty(taskRequestFacade.getCourseId())) {
              return new Result(false, StatusCode.ERROR, "课程id不能为空");
          }
-         //查看课程是否存在，存在说明可以进行报名
-         if (!redisTemplate.boundHashOps(RedisKey.COURSE_KEY.getCode()).hasKey(taskRequestFacade.getCourseId())) {
+         //判断是否是一个有效的用户
+         Account account = accountReadMapper.selectById(taskRequestFacade.getAccountId());
+         if (account == null) {
+             return new Result(false, StatusCode.ERROR, "无效的用户id");
+         }
+         //查看用户信息,是否为空，是否合法,是否禁用
+         if (!checkAccoutParam(account)) {
+             return new Result(false, StatusCode.ERROR, "请完善个人信息：姓名、证件号、手机号、国籍、年龄、身体状态");
+         }
+         //从数据库把课程信息查询出来
+         Course course = courseReadMapper.selectById(taskRequestFacade.getCourseId());
+         //是否是一个有效的课程
+         //1、为空
+         //2、不为空，状态不是0
+         //3、席位<= 0
+         //4、 开课时间小于当前时间
+         if (StringUtils.isEmpty(course)
+                 || (!StringUtils.isEmpty(course) && !course.getCourseStatus().equals(String.valueOf(CourseStatus.ZERO.getCode())))
+                 || (!StringUtils.isEmpty(course) && course.getNum() <= 0)
+                 || (!StringUtils.isEmpty(course) && course.getBeginTime().compareTo(new Date()) < 0)) {
              return new Result(false, StatusCode.ERROR, "该课程无法进行报名");
          }
-         //记录课程下用户报名的次数
-         Long userQueueCount = redisTemplate.boundHashOps(taskRequestFacade.getCourseId())
-                 .increment(taskRequestFacade.getAccountId(), 1);
-         if (userQueueCount > 1) {
+         //从数据库把报名信息查询出来
+         EntityWrapper<Enroll> entityWrapper = new EntityWrapper<>();
+         entityWrapper.eq("course_id", taskRequestFacade.getCourseId());
+         entityWrapper.eq("user_id", taskRequestFacade.getAccountId());
+         Integer accoutEnrollCount = enrollReadMapper.selectCount(entityWrapper);
+
+         if (accoutEnrollCount > 0) {
              //20007表示重复排队
              return new Result(false, StatusCode.REPEAT, "不能对同一课程重复报名");
          }
-         //从redis取出课程信息
-         Course course = (Course) redisTemplate.boundHashOps(RedisKey.COURSE_KEY.getCode())
-                 .get(taskRequestFacade.getCourseId());
-         /**
-          * 创建报名对象
-          * accountId:用户id
-          * name:课程名称
-          * teacher：讲师
-          * beginTime：开课时间
-          * createTime：报名时间
-          * status：审核状态（ 0:审核中，1:已审核,2:审核失败）
-          * courseId：课程id，用来做席位回滚操作。
-          */
-         AccountQueueStatus accountStatus = new AccountQueueStatus(taskRequestFacade.getAccountId(), course.getName()
-                 , course.getTeacher(), course.getBeginTime(), new Date(), EnrollStatus.ZERO.getCode(),
-                 taskRequestFacade.getCourseId());
-         //List队列类型，有序,记录用户报名排队
-         redisTemplate.boundListOps(RedisKey.ACCOUNT_QUEUE_LIST.getCode()).leftPush(accountStatus);
-         //用户报名状态->报名情况查询
-         redisTemplate.boundHashOps(RedisKey.ACCOUNT_QUEUE_STATUS.getCode() + "&" +
-                 taskRequestFacade.getAccountId()).put(taskRequestFacade.getCourseId(), accountStatus);
-         //用异步处理，进行入库,以及席位控制。
-         multiThreadingCreatEnroll.createEnroll();
-         return new Result(true, StatusCode.OK, "报名申请排队中...");
+         //创建一个报名课程
+         Enroll enroll = new Enroll();
+         //报名id
+         enroll.setId(idWorker.nextId());
+         //用户id
+         enroll.setUserId(taskRequestFacade.getAccountId());
+         //课程id
+         enroll.setCourseId(taskRequestFacade.getCourseId());
+         //审核状态
+         enroll.setAuditStatus(String.valueOf(EnrollStatus.ZERO.getCode()));
+         //报名时间
+         enroll.setEnrollTime(new Date());
+         //创建时间
+         enroll.setAddTime(new Date());
+         //报名信息写入数据库
+         Integer enroolResult = enrollWriteMapper.insert(enroll);
+         //查询出当前课程版本号
+         Integer courseVersion = courseReadMapper.selectVersionByCourseId(taskRequestFacade.getCourseId());
+         //修改课程席位
+         Integer courseResult = courseWriteMapper.decrCount(taskRequestFacade.getCourseId(), 1, courseVersion);
+         return new Result(true, StatusCode.OK, "报名成功");
      }
 
      /**
@@ -219,20 +230,18 @@
          if (StringUtils.isEmpty(taskRequestFacade.getAccountId())) {
              return new Result(false, StatusCode.ERROR, "用户id不能为空");
          }
-         //拿到所有课程key
-         Set<Long> courseKeys = redisTemplate.boundHashOps(RedisKey.COURSE_KEY.getCode()).keys();
-         if (courseKeys == null || courseKeys.size() <= 0) {
-             return new Result(false, StatusCode.ERROR, "未查询到可报名的课程");
+         //用户已经报名的课程
+         List<Long> accountCoures = enrollReadMapper.selectCoursesByAccount(taskRequestFacade.getAccountId());
+         EntityWrapper<Course> entityWrapper = new EntityWrapper<>();
+         if (accountCoures == null || accountCoures.size() <= 0) {
+             //过滤掉已经报过名的，并且：是待开课状态的，席位大于0的，开课时间是大于当前时间的
+             entityWrapper.eq("course_status", CourseStatus.ZERO.getCode());
+             entityWrapper.gt("num", 0);
+             entityWrapper.gt("begin_time", new Date());
+         } else {
+             entityWrapper.notIn("id", accountCoures);
          }
-         List<Course> courseList = new ArrayList<>();
-         for (Long key : courseKeys) {
-             //过滤掉报过名的课程
-             if (redisTemplate.boundHashOps(RedisKey.ACCOUNT_QUEUE_STATUS.getCode() + "&" +
-                     taskRequestFacade.getAccountId()).hasKey(key)) {
-                 continue;
-             }
-             courseList.add((Course) redisTemplate.boundHashOps(RedisKey.COURSE_KEY.getCode()).get(key));
-         }
+         List<Course> courseList = courseReadMapper.selectList(entityWrapper);
          return new Result<>(true, StatusCode.OK, "查询课程信息成功", courseList);
 
      }
@@ -250,16 +259,17 @@
          if (StringUtils.isEmpty(taskRequestFacade.getAccountId())) {
              return new Result<>(false, StatusCode.ERROR, "用户id不能为空");
          }
-         //拿到所有用户报名的课程key
-         Set<Long> keys = redisTemplate.boundHashOps(RedisKey.ACCOUNT_QUEUE_STATUS.getCode() + "&" +
-                 taskRequestFacade.getAccountId()).keys();
-         if (keys == null || keys.size() <= 0) {
+         EntityWrapper<Enroll> enrollEntityWrapper = new EntityWrapper<>();
+         enrollEntityWrapper.eq("user_id", taskRequestFacade.getAccountId());
+         List<Enroll> enrolls = enrollReadMapper.selectList(enrollEntityWrapper);
+         if (enrolls == null || enrolls.size() <= 0) {
              return new Result<>(false, StatusCode.ERROR, "查询失败，暂未报名");
          }
          List<AccountQueueStatus> list = new ArrayList<>();
-         for (Long key : keys) {
-             list.add((AccountQueueStatus) redisTemplate.boundHashOps(RedisKey.ACCOUNT_QUEUE_STATUS.getCode()
-                     + "&" + taskRequestFacade.getAccountId()).get(key));
+         for (Enroll enroll : enrolls) {
+             Course course = courseReadMapper.selectById(enroll.getCourseId());
+             list.add(new AccountQueueStatus(enroll.getUserId(), enroll.getId(), course.getName(), course.getTeacher()
+                     , course.getBeginTime(), enroll.getAddTime(), Integer.parseInt(enroll.getAuditStatus()), course.getId()));
          }
          return new Result<>(true, StatusCode.OK, "查询报名成功", list);
 
@@ -275,25 +285,28 @@
      @Override
      public Result<List<EnrollList>> findEnroll() {
          //查看是否有报名的名单
-         List<Enroll> enrolls = enrollMapper.selectAll();
+         EntityWrapper<Enroll> entityWrapper = new EntityWrapper<>();
+         entityWrapper.orderBy("enroll_time", true);
+         List<Enroll> enrolls = enrollReadMapper.selectList(entityWrapper);
          if (enrolls != null && enrolls.size() > 0) {
              //定义返回对象
              List<EnrollList> lists = new ArrayList<>();
              for (Enroll enroll : enrolls) {
-                 Account account = accountMapper.selectByPrimaryKey(enroll.getUserId());
+                 Account account = accountReadMapper.selectById(enroll.getUserId());
                  if (null == account) {
                      continue;
                  }
-                 Course course = courseMapper.selectByPrimaryKey(enroll.getCourseId());
+                 Course course = courseReadMapper.selectById(enroll.getCourseId());
                  if (null == course) {
                      continue;
                  }
+                 //调用属性赋值的封装方法
                  EnrollList enrollList = setEnrollListParam(enroll, account, course);
                  lists.add(enrollList);
              }
              return new Result<>(true, StatusCode.OK, "查询报名名单成功", lists);
          } else {
-             return new Result<>(false, StatusCode.OK, "查询报名名单失败");
+             return new Result<>(false, StatusCode.ERROR, "暂无用户报名");
          }
      }
 
@@ -306,75 +319,55 @@
       * @Descript 报名名单审核
       */
      @Override
+     @Transactional(rollbackFor = RuntimeException.class)
      public Result agreeEnrollCheck(TaskRequestFacade taskRequestFacade) {
          /**
-          * 1、如果审核成功，需要修改一下数据库的报名表的审核状态以及redis中给用户查看报名情况的审核状态
-          *     如果审核都通过，把课程状态改为("满员")，根据开课时间进行下一步状态判断。
+          * 1、如果审核成功，如果审核都通过，把课程状态改为("满员")，根据开课时间进行下一步状态判断。
           */
          if (!checkEnroolParam(taskRequestFacade)) {
              return new Result(false, StatusCode.ERROR, "用户id，课程id，报名id，审核人不能为空");
          }
-         ReentrantLock lock = new ReentrantLock();
-         lock.lock();
-         try {
-             //设置用户课程报名 —> 审核状态为已审核
-             Integer result = enrollResult(taskRequestFacade, EnrollStatus.ONE.getCode());
-             if (result > 0) {
-                 //进行redis的数据更新
-                 AccountQueueStatus aq = (AccountQueueStatus) redisTemplate.boundHashOps(
-                         RedisKey.ACCOUNT_QUEUE_STATUS.getCode() + "&" +
-                                 taskRequestFacade.getAccountId()).get(taskRequestFacade.getCourseId());
-                 //设置用户查看报名情况为已审核状态
-                 aq.setStatus(EnrollStatus.ONE.getCode());
-                 //并且写入redis
-                 redisTemplate.boundHashOps(RedisKey.ACCOUNT_QUEUE_STATUS.getCode() + "&" +
-                         taskRequestFacade.getAccountId()).put(taskRequestFacade.getCourseId(), aq);
-                 //检查一下审核通过的报名人数，然后修改课程表的状态
-                 Example example = new Example(Enroll.class);
-                 Example.Criteria criteria = example.createCriteria();
-                 criteria.andEqualTo("courseId", taskRequestFacade.getCourseId());
-                 criteria.andEqualTo("auditStatus", EnrollStatus.ONE.getCode());
-                 //统计一下当前课程审核通过的条数
-                 int agreeCount = enrollMapper.selectCountByExample(example);
-                 if (agreeCount >= 5) {
-                     //修改课程表的状态为已满员
-                     Integer courseCount = courseResult(taskRequestFacade, CourseStatus.THREE.getCode());
-                     if (courseCount < 1) {
-                         return new Result(false, StatusCode.OK, "同意报名名单时，修改课程状态时出现异常");
-                     }
-                 }
-                 return new Result(true, StatusCode.OK, "同意报名名单,审核成功");
-             }
-             return new Result(false, StatusCode.OK, "同意报名名单,审核失败");
-         } finally {
-             lock.unlock();
+         Enroll enroll = enrollReadMapper.selectById(taskRequestFacade.getEnrollId());
+         if (!enroll.getAuditStatus().equals(String.valueOf(EnrollStatus.ZERO.getCode()))) {
+             return new Result(false, StatusCode.ERROR, "只允许修改审核中的报名名单！");
          }
-
+         //设置用户课程报名 —> 审核状态为已审核
+         Integer result = enrollResult(taskRequestFacade, EnrollStatus.ONE.getCode());
+         if (result > 0) {
+             //统计一下当前课程 审核中的条数
+             EntityWrapper<Enroll> entityWrapper = new EntityWrapper<>();
+             entityWrapper.eq("course_id", taskRequestFacade.getCourseId());
+             entityWrapper.eq("audit_status", EnrollStatus.ZERO.getCode());
+             Integer count = enrollReadMapper.selectCount(entityWrapper);
+             //统计一下课程席位数
+             Course course = courseReadMapper.selectById(taskRequestFacade.getCourseId());
+             if (course.getNum() <= 0 && count <= 0) {
+                 //修改课程表的状态为已满员
+                 Integer courseCount = courseResult(taskRequestFacade, CourseStatus.THREE.getCode());
+             }
+             return new Result(true, StatusCode.OK, "同意报名名单，审核成功");
+         }
+         return new Result(false, StatusCode.OK, "同意报名名单，审核失败");
      }
+
 
      /**
       * 修改课程表状态方法封装
       */
      private Integer courseResult(TaskRequestFacade taskRequestFacade, Integer statusCode) {
-         Course course = new Course();
-         course.setId(taskRequestFacade.getCourseId());
-         course.setCourseStatus(String.valueOf(statusCode));
-         return courseMapper.updateByPrimaryKeySelective(course);
+         Integer version = courseReadMapper.selectVersionByCourseId(taskRequestFacade.getCourseId());
+         return courseWriteMapper.updateCourseStatus(taskRequestFacade.getCourseId(), statusCode, version);
      }
 
      /**
       * 审核时候的方法封装
       */
      private Integer enrollResult(TaskRequestFacade taskRequestFacade, Integer statusCode) {
-         Enroll enroll = new Enroll();
-         enroll.setId(taskRequestFacade.getEnrollId());
-         //审核状态
-         enroll.setAuditStatus(String.valueOf(statusCode));
-         //审核者id
-         enroll.setAuditor(taskRequestFacade.getAuditor());
-         //审核时间
-         enroll.setAuditTime(new Date());
-         return enrollMapper.updateByPrimaryKeySelective(enroll);
+         //拿到version
+         Integer enrollVersion = enrollReadMapper.selectVersionByEnrollId(taskRequestFacade.getEnrollId());
+         //执行update
+         return enrollWriteMapper.updateAuditStatus(taskRequestFacade.getEnrollId(), taskRequestFacade.getAuditor(),
+                 statusCode, enrollVersion, new Date());
      }
 
      /**
@@ -410,54 +403,51 @@
       * @Descript 报名名单审核
       */
      @Override
+     @Transactional(rollbackFor = RuntimeException.class)
      public Result rejectEnrollCheck(TaskRequestFacade taskRequestFacade) {
          /**
-          * 1、如果审核失败，需要把课程重新添加到redis中,并且对该课程的席位数,进行一个入栈操作
+          * 1、如果审核失败，需要对席位进行递加,把课程状态改为待开课。
           */
          if (!checkEnroolParam(taskRequestFacade)) {
              return new Result(false, StatusCode.ERROR, "用户id，课程id，报名id，审核人不能为空");
          }
-         ReentrantLock lock = new ReentrantLock();
-         lock.lock();
-         try {
-             //设置用户课程报名 —> 审核状态为审核失败
-             Integer result = enrollResult(taskRequestFacade, EnrollStatus.TWO.getCode());
-             if (result > 0) {
-                 //把对应的用户报名状态查询出来
-                 AccountQueueStatus aqs = (AccountQueueStatus) redisTemplate.boundHashOps(RedisKey.ACCOUNT_QUEUE_STATUS.getCode() + "&" +
-                         taskRequestFacade.getAccountId()).get(taskRequestFacade.getCourseId());
-                 //修改为审核失败
-                 aqs.setStatus(EnrollStatus.TWO.getCode());
-                 //把对应的用户报名状态写入redis
-                 redisTemplate.boundHashOps(RedisKey.ACCOUNT_QUEUE_STATUS.getCode() + "&" +
-                         taskRequestFacade.getAccountId()).put(taskRequestFacade.getCourseId(), aqs);
-                 //判断一下redis的课程是否存在，不存在把课程写入redis
-                 if (!redisTemplate.boundHashOps(RedisKey.COURSE_KEY.getCode()).hasKey(taskRequestFacade.getCourseId())) {
-                     Course course = courseMapper.selectByPrimaryKey(taskRequestFacade.getCourseId());
-                     //对课程席位进行入队
-                     redisTemplate.boundListOps(RedisKey.COURSE_COUNT.getCode() + "_" +
-                             taskRequestFacade.getCourseId()).leftPush(taskRequestFacade.getCourseId());
-                     //把课程写入到redis
-                     redisTemplate.boundHashOps(RedisKey.COURSE_KEY.getCode())
-                             .put(taskRequestFacade.getCourseId(), course);
-                 } else {
-                     //对课程席位进行入队
-                     redisTemplate.boundListOps(RedisKey.COURSE_COUNT.getCode() + "_" +
-                             taskRequestFacade.getCourseId()).leftPush(taskRequestFacade.getCourseId());
-                 }
-                 return new Result(true, StatusCode.OK, "拒绝报名名单,审核成功");
-             }
-             return new Result(false, StatusCode.OK, "拒绝报名名单,审核失败");
-         } finally {
-             lock.unlock();
+         Enroll enroll = enrollReadMapper.selectById(taskRequestFacade.getEnrollId());
+         if (!enroll.getAuditStatus().equals(String.valueOf(EnrollStatus.ZERO.getCode()))) {
+             return new Result(false, StatusCode.ERROR, "只允许修改审核中的报名名单！");
          }
+         //设置用户课程报名 —> 审核状态为审核失败
+         Integer result = enrollResult(taskRequestFacade, EnrollStatus.TWO.getCode());
+         if (result > 0) {
+             //统计一下当前课程 审核失败的条数
+             EntityWrapper<Enroll> entityWrapper = new EntityWrapper<>();
+             entityWrapper.eq("course_id", taskRequestFacade.getCourseId());
+             entityWrapper.eq("audit_status", EnrollStatus.TWO.getCode());
+             Integer failCount = enrollReadMapper.selectCount(entityWrapper);
+
+             //把当前课程信息查询出来
+             Course course = courseReadMapper.selectById(taskRequestFacade.getCourseId());
+             //得到当前课程版本号
+             Integer courseVersion = course.getVersion();
+             //递加席位数
+             Integer courseResult = courseWriteMapper.increaseCount(taskRequestFacade.getCourseId(), 1, courseVersion);
+
+             //如果不是待开课状态需要进行修改
+             if (!course.getCourseStatus().equals(CourseStatus.ZERO.getCode())) {
+                 //得到当前课程版本号
+                 Integer version = course.getVersion();
+                 //修改课程状态 -> 待开课
+                 courseResult(taskRequestFacade, CourseStatus.ZERO.getCode());
+             }
+             return new Result(true, StatusCode.OK, "拒绝报名名单,审核成功");
+         }
+         return new Result(false, StatusCode.OK, "拒绝报名名单,审核失败");
+
      }
 
      /**
       * job自动审核
       * 每天凌晨1点自动执行
-      */
-     /** Scheduled 表达式解释
+      * Scheduled 表达式解释
       * 字段　　允许值　　允许的特殊字符
       * 秒     　 0-59 　　　　, - * /
       * 分     　 0-59　　　　 , - * /
@@ -469,28 +459,32 @@
       */
      @Scheduled(cron = "0 0 1 ? * * ")
      public void EnrollPushTask() {
-         System.out.println("任务计划job执行了！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！");
          /**
           * 1、把所有的待审核状态的数据查出来。
           * 2、判断用户的必填属性合法性(true,调用同意审核接口;false:调用拒绝审核接口)
           */
-         Example example = new Example(Enroll.class);
-         Example.Criteria criteria = example.createCriteria();
-         criteria.andEqualTo("auditStatus", EnrollStatus.ZERO);
-         List<Enroll> enrolls = enrollMapper.selectByExample(example);
+
+         EntityWrapper<Enroll> enrollEntityWrapper = new EntityWrapper<>();
+         enrollEntityWrapper.eq("audit_status", EnrollStatus.ZERO.getCode());
+         List<Enroll> enrolls = enrollReadMapper.selectList(enrollEntityWrapper);
          if (null == enrolls || enrolls.size() <= 0) {
-             throw new RuntimeException("没有待审核的数据需要处理");
+             log.debug("nullData..{}",enrolls);
          }
          for (Enroll enl : enrolls) {
-             Account account = accountMapper.selectByPrimaryKey(enl.getUserId());
+             Account account = accountReadMapper.selectById(enl.getUserId());
              //属性合法
-             if (checkAccountParamIsLegal(account)) {
-                 //调用同意审核方法
-                 agreeEnrollCheck(new TaskRequestFacade(enl.getUserId(),enl.getCourseId(),enl.getId(),8888L));
-             } else {
-                 //调用拒绝审核方法
-                 rejectEnrollCheck(new TaskRequestFacade(enl.getUserId(),enl.getCourseId(),enl.getId(),8888L));
+             try{
+                 if (checkAccoutParam(account)) {
+                     //调用同意审核方法
+                     agreeEnrollCheck(new TaskRequestFacade(enl.getUserId(), enl.getCourseId(), enl.getId(), 8888L));
+                 } else {
+                     //调用拒绝审核方法
+                     rejectEnrollCheck(new TaskRequestFacade(enl.getUserId(), enl.getCourseId(), enl.getId(), 8888L));
+                 }
+             }catch (Exception e){
+                 log.debug("EnrollPushTask..Exception..{}",account);
              }
+
          }
      }
 
@@ -522,12 +516,31 @@
      }
 
      /**
-      * 检查用户属性是否合法有效
+      * 验证一下用户报名属性是否为空以及检查用户属性是否合法有效
       *
       * @param account
       * @return
       */
-     private Boolean checkAccountParamIsLegal(Account account) {
+     private Boolean checkAccoutParam(Account account) {
+         if (StringUtils.isEmpty(account.getName())) {
+             return false;
+         }
+         if (StringUtils.isEmpty(account.getIdCardNum())) {
+             return false;
+         }
+         if (StringUtils.isEmpty(account.getPhone())) {
+             return false;
+         }
+         if (StringUtils.isEmpty(account.getNationality())) {
+             return false;
+         }
+         if (StringUtils.isEmpty(account.getAge())) {
+             return false;
+         }
+         if (StringUtils.isEmpty(account.getStatus())) {
+             return false;
+         }
+         //检查用户属性是否合法有效
          if (StringUtils.isEmpty(account.getIdCardNum()) ||
                  (!StringUtils.isEmpty(account.getIdCardNum()) &&
                          !IdCardNumUtil.validateIdCard18(account.getIdCardNum()))) {

@@ -1,63 +1,107 @@
 package com.tuhu.sf.newcomer.task.dao.dataobject;
 
-import javax.persistence.*;
+import com.baomidou.mybatisplus.annotations.TableField;
+import com.baomidou.mybatisplus.annotations.TableId;
+import com.baomidou.mybatisplus.annotations.TableName;
+import com.baomidou.mybatisplus.enums.IdType;
+
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Objects;
 
 /****
  * @Author:舒凡
  * @Description:sf_course课程表
  * @date 2020/12/7 19:16
  *****/
-@Table(name = "sf_course")
+@TableName("sf_course")
 public class Course implements Serializable {
     private static final long serialVersionUID = 0000000000001L;
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
+
+    @TableId(value = "id", type = IdType.INPUT)
     private Long id;//课程id
 
-    @Column(name = "name")
+    @TableField("name")
     private String name;//课程名称
 
-    @Column(name = "teacher")
+    @TableField("teacher")
     private String teacher;//课程讲师
 
-    @Column(name = "content")
+    @TableField("content")
     private String content;//课程内容
 
-    @Column(name = "course_status")
+    @TableField("course_status")
     private String courseStatus;//课程状态(0:待开课;1:开课中;2:已结束;3:满员)
 
-    @Column(name = "begin_time")
+    @TableField("begin_time")
     private Date beginTime;//开课时间
 
-    @Column(name = "end_time")
+    @TableField("end_time")
     private Date endTime;//停课时间
 
-    @Column(name = "creator")
+    @TableField("creator")
     private Long creator;//创建人ID
 
-    @Column(name = "creator_name")
+    @TableField("creator_name")
     private String creatorName;//创建人名称
 
-    @Column(name = "add_time")
+    @TableField("add_time")
     private Date addTime;//创建时间
 
-    @Column(name = "updator")
+    @TableField("updator")
     private Long updator;//修改人ID
 
-    @Column(name = "updator_name")
+    @TableField("updator_name")
     private String updatorName;//修改人名称
 
-    @Column(name = "update_time")
+    @TableField("update_time")
     private Date updateTime;//修改时间
 
+    @TableField("num")
+    private Integer num;//席位数量
+
+    @TableField("version")
+    private Integer version;//版本号
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Course course = (Course) o;
+        return Objects.equals(id, course.id) &&
+                Objects.equals(name, course.name) &&
+                Objects.equals(teacher, course.teacher) &&
+                Objects.equals(content, course.content) &&
+                Objects.equals(courseStatus, course.courseStatus) &&
+                Objects.equals(beginTime, course.beginTime) &&
+                Objects.equals(endTime, course.endTime) &&
+                Objects.equals(creator, course.creator) &&
+                Objects.equals(creatorName, course.creatorName) &&
+                Objects.equals(addTime, course.addTime) &&
+                Objects.equals(updator, course.updator) &&
+                Objects.equals(updatorName, course.updatorName) &&
+                Objects.equals(updateTime, course.updateTime) &&
+                Objects.equals(num, course.num) &&
+                Objects.equals(version, course.version);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, teacher, content, courseStatus, beginTime, endTime, creator, creatorName, addTime, updator, updatorName, updateTime, num, version);
+    }
+
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
 
     public Long getId() {
         return id;
     }
-
 
     public void setId(Long id) {
         this.id = id;
@@ -67,15 +111,21 @@ public class Course implements Serializable {
         return name;
     }
 
-
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Integer getNum() {
+        return num;
+    }
+
+    public void setNum(Integer num) {
+        this.num = num;
     }
 
     public String getTeacher() {
         return teacher;
     }
-
 
     public void setTeacher(String teacher) {
         this.teacher = teacher;
@@ -85,7 +135,6 @@ public class Course implements Serializable {
         return content;
     }
 
-
     public void setContent(String content) {
         this.content = content;
     }
@@ -93,7 +142,6 @@ public class Course implements Serializable {
     public String getCourseStatus() {
         return courseStatus;
     }
-
 
     public void setCourseStatus(String courseStatus) {
         this.courseStatus = courseStatus;
@@ -103,7 +151,6 @@ public class Course implements Serializable {
         return beginTime;
     }
 
-
     public void setBeginTime(Date beginTime) {
         this.beginTime = beginTime;
     }
@@ -111,7 +158,6 @@ public class Course implements Serializable {
     public Date getEndTime() {
         return endTime;
     }
-
 
     public void setEndTime(Date endTime) {
         this.endTime = endTime;
@@ -121,7 +167,6 @@ public class Course implements Serializable {
         return creator;
     }
 
-
     public void setCreator(Long creator) {
         this.creator = creator;
     }
@@ -129,7 +174,6 @@ public class Course implements Serializable {
     public String getCreatorName() {
         return creatorName;
     }
-
 
     public void setCreatorName(String creatorName) {
         this.creatorName = creatorName;
@@ -139,7 +183,6 @@ public class Course implements Serializable {
         return addTime;
     }
 
-
     public void setAddTime(Date addTime) {
         this.addTime = addTime;
     }
@@ -147,7 +190,6 @@ public class Course implements Serializable {
     public Long getUpdator() {
         return updator;
     }
-
 
     public void setUpdator(Long updator) {
         this.updator = updator;
@@ -157,7 +199,6 @@ public class Course implements Serializable {
         return updatorName;
     }
 
-
     public void setUpdatorName(String updatorName) {
         this.updatorName = updatorName;
     }
@@ -166,10 +207,7 @@ public class Course implements Serializable {
         return updateTime;
     }
 
-
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
     }
-
-
 }

@@ -11,28 +11,28 @@
   * @author 舒凡
   * @date 2020/12/9 12:48
   */
- public enum  EnrollStatus {
-  /**
-   * 0：审核中
-   */
-  ZERO(0,"审核中"),
-  /**
-   * 1:已审核
-   */
-  ONE(1,"已审核"),
-  /**
-   * 2：审核失败
-   */
-  TWO(2, "审核失败");
+ public enum EnrollStatus {
+     /**
+      * 0：审核中
+      */
+     ZERO(0, "审核中"),
+     /**
+      * 1:已审核
+      */
+     ONE(1, "已审核"),
+     /**
+      * 2：审核失败
+      */
+     TWO(2, "审核失败");
 
-  private final int code;
+     private final int code;
 
-  EnrollStatus(int code, final String value){
-   this.code = code;
-  }
+     EnrollStatus(int code, final String value) {
+         this.code = code;
+     }
 
-  public int getCode() {
-   return code;
-  }
+     public int getCode() {
+         return code;
+     }
 
  }

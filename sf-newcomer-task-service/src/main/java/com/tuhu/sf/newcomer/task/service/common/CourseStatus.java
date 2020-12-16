@@ -12,33 +12,33 @@
   * @date 2020/12/8 13:58
   */
  public enum CourseStatus {
-  /**
-   * 0：待开课
-   */
-  ZERO(0,"待开课"),
-  /**
-   * 1:已开课
-   */
-  ONE(1,"已开课"),
-  /**
-   * 2：已结束
-   */
-  TWO(2,"已结束"),
-  /**
-   * 3：已满员
-   */
-  THREE(3,"已满员");
+     /**
+      * 0：待开课
+      */
+     ZERO(0, "待开课"),
+     /**
+      * 1:已开课
+      */
+     ONE(1, "已开课"),
+     /**
+      * 2：已结束
+      */
+     TWO(2, "已结束"),
+     /**
+      * 3：已满员
+      */
+     THREE(3, "已满员");
 
 
-  private final int code;
+     private final int code;
 
-  CourseStatus(int code,final String value) {
-   this.code = code;
-  }
+     CourseStatus(int code, final String value) {
+         this.code = code;
+     }
 
-  public int getCode() {
-   return code;
-  }
+     public int getCode() {
+         return code;
+     }
 
-  
+
  }

@@ -1,5 +1,10 @@
 package com.tuhu.sf.newcomer.task.dao.dataobject;
 
+import com.baomidou.mybatisplus.annotations.TableField;
+import com.baomidou.mybatisplus.annotations.TableId;
+import com.baomidou.mybatisplus.annotations.TableName;
+import com.baomidou.mybatisplus.enums.IdType;
+
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
@@ -9,75 +14,74 @@ import java.util.Date;
  * @Description:sf_account账户表
  * @date 2020/12/7 19:16
  *****/
-@Table(name = "sf_account")
+@TableName("sf_account")
 public class Account implements Serializable {
     private static final long serialVersionUID = 0000000000002L;
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(value = "id", type = IdType.INPUT)
     @Column(name = "id")
     private Long id;//主键
 
-    @Column(name = "login_id")
+    @TableField("login_id")
     private String loginId;//账号ID
 
-    @Column(name = "organization_code")
+    @TableField("organization_code")
     private String organizationCode;//所属组织
 
-    @Column(name = "phone")
+    @TableField("phone")
     private String phone;//手机号码
 
-    @Column(name = "role_code")
+    @TableField("role_code")
     private String roleCode;//角色
 
-    @Column(name = "password")
+    @TableField("password")
     private String password;//密码
 
-    @Column(name = "name")
+    @TableField("name")
     private String name;//姓名
 
-    @Column(name = "nationality")
+    @TableField("nationality")
     private String nationality;//国籍
 
-    @Column(name = "id_card_num")
+    @TableField("id_card_num")
     private String idCardNum;//身份证号
 
-    @Column(name = "age")
+    @TableField("age")
     private Integer age;//年龄
 
-    @Column(name = "simple_pinyin_name")
+    @TableField("simple_pinyin_name")
     private String simplePinyinName;//名字拼音首字母简写
 
-    @Column(name = "type")
+    @TableField("type")
     private String type;//类型,用户,运营人员,管理员
 
-    @Column(name = "status")
+    @TableField("status")
     private String status;//健康状态，enable，disable
 
-    @Column(name = "email")
+    @TableField("email")
     private String email;//邮箱
 
-    @Column(name = "gender")
+    @TableField("gender")
     private String gender;//性别
 
-    @Column(name = "birthday")
+    @TableField("birthday")
     private Date birthday;//出生日期
 
-    @Column(name = "creator")
+    @TableField("creator")
     private Long creator;//创建人ID
 
-    @Column(name = "creator_name")
+    @TableField("creator_name")
     private String creatorName;//创建人名称
 
-    @Column(name = "add_time")
+    @TableField("add_time")
     private Date addTime;//创建时间
 
-    @Column(name = "updator")
+    @TableField("updator")
     private Long updator;//修改人ID
 
-    @Column(name = "updator_name")
+    @TableField("updator_name")
     private String updatorName;//修改人名称
 
-    @Column(name = "update_time")
+    @TableField("update_time")
     private Date updateTime;//修改时间
 
 

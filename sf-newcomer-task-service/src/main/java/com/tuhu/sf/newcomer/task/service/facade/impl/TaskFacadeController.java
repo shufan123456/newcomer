@@ -76,7 +76,7 @@
       */
 
      @Override
-     public Result AgreeEnrollCheck(@RequestBody(required = false) TaskRequestFacade taskRequestFacade) {
+     public Result agreeEnrollCheck(@RequestBody(required = false) TaskRequestFacade taskRequestFacade) {
          return StringUtils.isEmpty(taskRequestFacade) ? CheckRequestParam() : taskService.agreeEnrollCheck(taskRequestFacade);
      }
 
@@ -91,7 +91,7 @@
       */
 
      @Override
-     public Result RejectEnrollCheck(@RequestBody(required = false) TaskRequestFacade taskRequestFacade) {
+     public Result rejectEnrollCheck(@RequestBody(required = false) TaskRequestFacade taskRequestFacade) {
          return StringUtils.isEmpty(taskRequestFacade) ? CheckRequestParam() : taskService.rejectEnrollCheck(taskRequestFacade);
      }
 
@@ -102,6 +102,7 @@
       * @return 返回未报名的课程结果
       * @Descript
       */
+
      @Override
      public Result<List<Course>> findCourse(@RequestBody(required = false) TaskRequestFacade taskRequestFacade) {
          return StringUtils.isEmpty(taskRequestFacade) ? CheckRequestParam() : taskService.findCourse(taskRequestFacade);

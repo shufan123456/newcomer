@@ -20,14 +20,14 @@
   * @date 2020/12/8 13:44
   */
 
- public interface TaskService<T> {
+ public interface TaskService {
   /**
    * 课程新建
    * @param course pojo
    * @Descript 课程名称、讲师、开课时间、课程内容、课程状态
    * @return Result
    */
-  Result<T> add(Course course);
+  Result add(Course course);
   /**
    * 课程修改
    * @param course pojo
@@ -51,7 +51,7 @@
    * @param taskRequestFacade accountId 用户id
    * @return 返回未报名的课程结果
    */
-  Result<T> findCourse(TaskRequestFacade taskRequestFacade) ;
+  Result<List<Course>>findCourse(TaskRequestFacade taskRequestFacade) ;
 
   /**
    * 查看报名情况
